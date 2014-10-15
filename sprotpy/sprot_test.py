@@ -1,6 +1,7 @@
 
 import sprotapi as sprotapi
-from easyNav_pi_dispatcher import DispatcherClient
+import time as time
+#from easyNav_pi_dispatcher import DispatcherClient
 
 DATA_SIZE = 5
 DEST_PORT = 9004
@@ -10,7 +11,7 @@ def convertSPROTPacketToJson(packet):
     jsonpkt = '"' + strpkt[0] + '"' + ':"' + strpkt[2:5] + '"'
     return jsonpkt
 
-sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=115200)
+sprotapi.SPROTInit("COM1", baudrate=9600)
 
 while True :
     pkt1 = sprotapi.SPROTReceive(DATA_SIZE)
@@ -23,9 +24,11 @@ while True :
         jsonSonar2 = convertSPROTPacketToJson(pkt2)
         sonarData = "{" + jsonSonar1 + "," + jsonSonar1 +"}"
         
-        dc = DispatcherClient(port=9005)
-        dc.send(DEST_PORT, 'sonarData', sonarData)
+        #dc = DispatcherClient(port=9005)
+        #dc.send(DEST_PORT, 'sonarData', sonarData)
         print "Sent sonar data to alert (", sonarData, ")"
+        
+    time.sleep(0.05)
         
 
     
