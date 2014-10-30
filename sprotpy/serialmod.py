@@ -104,7 +104,7 @@ while True :
         	print "recv error"
     	else :
 		# Check packet type
-		pkt.printPacket()
+		#pkt.printPacket()
 		strpkt = pkt.data.decode("ascii")
 
 		if (strpkt[0] == b'1') :
