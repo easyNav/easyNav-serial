@@ -12,7 +12,7 @@ DEST_PORT_ALERT = 9004
 
 
 def sonar_post_process(ns) :
-	httpClient = req.RequestClass(local_mode=0)	
+	httpClient = req.RequestClass(local_mode=1)	
 
 	while(1) :
 		time.sleep(1)
