@@ -34,7 +34,7 @@ class Alert(object):
     OBSTACLE_AVOIDANCE_WAIT_INTERVAL = 3
     
     # How close an object has to be before it is declared an obstacle (cm)
-    OBSTACLE_DIST_THRESHOLD = 100
+    OBSTACLE_DIST_THRESHOLD = 30
 	
     # How many times must obstacle be detected before it is confirmed
     OBSTACLE_CONFIRMATION_COUNT = 3

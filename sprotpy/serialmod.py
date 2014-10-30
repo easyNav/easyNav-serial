@@ -4,6 +4,8 @@ import sprotpkt as sprotpkt
 import multiprocessing
 import req
 import time
+import threading
+import serialmod as serialmod
 from easyNav_pi_dispatcher import DispatcherClient
 
 DATA_SIZE = 16
@@ -11,20 +13,25 @@ DEST_PORT_CRUNCHER = 9003
 DEST_PORT_ALERT = 9004
 
 
+# Posts sonar data to server
 def sonar_post_process(ns) :
 	httpClient = req.RequestClass(local_mode=1)	
 
-	while(1) :
+	while (True) :
 		time.sleep(1)
 		if (ns.data != 0) :
-			# Send right sonar HTTP request
-			httpClient.post_heartbeat_sonar("right", ns.data['right'])
-			# Send left sonar HTTP request
-			httpClient.post_heartbeat_sonar("left", ns.data['left'])
-			print "Sent sonar to server ", ns.data
+			try :
+				# Send right sonar HTTP request
+				httpClient.post_heartbeat_sonar("right", ns.data['right'])
+				# Send left sonar HTTP request
+				httpClient.post_heartbeat_sonar("left", ns.data['left'])
+				print "Sent sonar to server ", ns.data
+			except :
+				print "Server communications failed."
+				pass
 
 
-
+# Extract sonar data from generic packet
 def convertPacketToSonarData(strpkt):
     sonarData = { strpkt[0] : strpkt[2:5] }
     return sonarData
@@ -45,9 +52,48 @@ ns = manager.Namespace()
 ns.data = 0
 
 p1 = multiprocessing.Process(target=sonar_post_process, args=(ns,))
-p1.start()
+#p1.start()
 
 
+# easyNav-dispatcher communications
+def dispatchData() :			
+			
+	while True :
+		time.sleep(0.001)
+		
+		# Send compass data, set distance to zero if not available
+		if (serialmod.compassData != 0) :
+			# Package into cruncher data
+			cruncherData = { "angle" : serialmod.compassData, "distance" : serialmod.footsensData }			
+			serialmod.compassData = 0
+
+			# Clear footsens data if we have consumed it
+			if (serialmod.footsensData != 0) :
+				serialmod.footsensData = 0	
+			
+			print "Foot/angle sensor ==> cruncher ", cruncherData
+			
+		# If both sonar data are available, combine them and send to alert
+		if ((serialmod.sonar1Data != 0) and (serialmod.sonar2Data != 0)) :
+			serialmod.sonar1Data.update(serialmod.sonar2Data)
+			combinedSonarData = serialmod.sonar1Data
+			
+			# Send to alert
+			serialmod.dc.send(DEST_PORT_ALERT, 'sonarData', combinedSonarData)
+			print "Sonar ==> alert ", combinedSonarData
+			# Send to child process for posting to HTTP server
+			#serialmod.ns.data = { 'left' : combinedSonarData['1'], 'right' : combinedSonarData['2']  }
+		
+			# Clear sonar data after we have consumed them
+			serialmod.sonar1Data = 0
+			serialmod.sonar2Data = 0
+
+
+# Run the easyNav dispatcher in a separate thread so it does not hog our serial read
+dispatcherThread = threading.Thread(target=serialmod.dispatchData)
+dispatcherThread.start()		
+
+		
 while True :
 
     	# Read a packet
@@ -58,6 +104,7 @@ while True :
         	print "recv error"
     	else :
 		# Check packet type
+		pkt.printPacket()
 		strpkt = pkt.data.decode("ascii")
 
 		if (strpkt[0] == b'1') :
@@ -67,33 +114,8 @@ while True :
         	elif (strpkt[0] == b'C') :
 			compassData = strpkt[2:5]
 		elif (strpkt[0] == b'F') :
-			footsensData = strpkt
-			
-			
-		# If both compass and foot sensor data are available, combine them and send to alert
-		if (compassData != 0) :
-			# Package into cruncher data
-			cruncherData = { "angle" : compassData, "distance" : footsensData }
-			dc.send(DEST_PORT_CRUNCHER, "angle", cruncherData)
-			
-			compassData = 0
-			if (footsendData != 0) :
-				footsensData = 0
-				
-			print "Foot/angle sensor ==> cruncher ", cruncherData
-			
-		# If both sonar data are available, combine them and send to alert
-		if ((sonar1Data != 0) and (sonar2Data != 0)) :
-			sonar1Data.update(sonar2Data)
-			combinedSonarData = sonar1Data
-			# Send to alert
-			dc.send(DEST_PORT_ALERT, 'sonarData', combinedSonarData)
-			print "Sonar ==> alert ", combinedSonarData
-			# Send to child process for posting to HTTP server
-			ns.data = { 'left' : combinedSonarData['1'], 'right' : combinedSonarData['2']  }
-			
-			sonar1Data = 0
-			sonar2Data = 0
-			
+			footsensData = strpkt[2:10]			
 
-# End of script
+
+
+# End of serialmod

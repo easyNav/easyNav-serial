@@ -21,17 +21,17 @@ def SPROTInit(portName, baudrate=9600):
 		
 def SPROTClose():
 	serialPort.flushInput()
-	serialPort.flushOutput()
+	#serialPort.flushOutput()
 	serialPort.close()
-	sprotapi.protocolInitiazed = False
+	sprotapi.initiazed = False
 	
 	
 def SPROTReceive(timeout=sprotcfg.SPROT_RECV_TIMEOUT):
 	
-	if not sprotapi.protocolInitialized:
+	if not sprotapi.initialized :
 		return sprotcfg.SPROT_ERROR
-
-	return sprotint.receivePacket(timeout)
+        else :
+		return sprotint.receivePacket(timeout)
 		
 	
 def SPROTSend(data, timeout=sprotcfg.SPROT_SEND_TIMEOUT):
