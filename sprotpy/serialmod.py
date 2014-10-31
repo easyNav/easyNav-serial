@@ -65,7 +65,7 @@ def dispatchData() :
 		# Send compass data, set distance to zero if not available
 		if (serialmod.compassData != 0) :
 			# Acquire mutex lock on foot sensor data so that we don't miss any updates to it
-			serialmod.footsensMutex.acquire(blocking=True)
+			serialmod.footsensMutex.acquire()
 			
 			# Package into cruncher data
 			cruncherData = { "angle" : serialmod.compassData, "distance" : serialmod.footsensData }			
@@ -103,13 +103,13 @@ dispatcherThread.start()
 
 
 # Strips trailing zeroes if required
-# def removeNullChars(self,str):
-	# maxIndex = 3
-	# for i in range(3):
-		# if(str[i].isdigit() or str[i] == '.'):
-			# maxIndex = i
+def removeNullChars(str):
+	maxIndex = 7
+	for i in range(maxIndex):
+		if(str[i].isdigit() or str[i] == '.'):
+			maxIndex = i
 
-	# return str[0:maxIndex+1]
+	return str[0:maxIndex+1]
 	
 		
 while True :
@@ -132,8 +132,8 @@ while True :
         	elif (strpkt[0] == b'C') :
 			compassData = strpkt[2:5]
 		elif (strpkt[0] == b'F') :
-			footsensMutex.acquire(blocking=True)
-			footsensData = strpkt[2:10]
+			footsensMutex.acquire()
+			footsensData = removeNullChars(strpkt[2:10])
 			footsensMutex.release()
 
 
