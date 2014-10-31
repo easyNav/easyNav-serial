@@ -46,6 +46,7 @@ sonar1Data = 0
 sonar2Data = 0
 compassData = 0
 footsensData = 0
+footsensMutex = threading.Lock()
 
 manager = multiprocessing.Manager()
 ns = manager.Namespace()
@@ -63,14 +64,21 @@ def dispatchData() :
 		
 		# Send compass data, set distance to zero if not available
 		if (serialmod.compassData != 0) :
+			# Acquire mutex lock on foot sensor data so that we don't miss any updates to it
+			serialmod.footsensMutex.acquire(blocking=True)
+			
 			# Package into cruncher data
 			cruncherData = { "angle" : serialmod.compassData, "distance" : serialmod.footsensData }			
+			serialmod.dc.send(DEST_PORT_CRUNCHER, 'angle', cruncherData)			
 			serialmod.compassData = 0
-
+			
 			# Clear footsens data if we have consumed it
 			if (serialmod.footsensData != 0) :
-				serialmod.footsensData = 0	
-			
+				serialmod.footsensData = 0
+				
+			# Release the mutex lock after consuming footsend data
+			serialmod.footsensMutex.release();
+	
 			print "Foot/angle sensor ==> cruncher ", cruncherData
 			
 		# If both sonar data are available, combine them and send to alert
@@ -93,6 +101,16 @@ def dispatchData() :
 dispatcherThread = threading.Thread(target=serialmod.dispatchData)
 dispatcherThread.start()		
 
+
+# Strips trailing zeroes if required
+# def removeNullChars(self,str):
+	# maxIndex = 3
+	# for i in range(3):
+		# if(str[i].isdigit() or str[i] == '.'):
+			# maxIndex = i
+
+	# return str[0:maxIndex+1]
+	
 		
 while True :
 
@@ -114,7 +132,9 @@ while True :
         	elif (strpkt[0] == b'C') :
 			compassData = strpkt[2:5]
 		elif (strpkt[0] == b'F') :
-			footsensData = strpkt[2:10]			
+			footsensMutex.acquire(blocking=True)
+			footsensData = strpkt[2:10]
+			footsensMutex.release()
 
 
 
