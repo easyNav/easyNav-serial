@@ -77,7 +77,7 @@ def dispatchData() :
 				serialmod.footsensData = 0
 				
 			# Release the mutex lock after consuming footsend data
-			serialmod.footsensMutex.release();
+			serialmod.footsensMutex.release()
 	
 			print "Foot/angle sensor ==> cruncher ", cruncherData
 			
