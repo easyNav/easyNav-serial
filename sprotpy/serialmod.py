@@ -42,6 +42,9 @@ sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=115200)
 dc = DispatcherClient(port=9005)
 dc.start()
 
+PRINT_EVERY_N_ITER = 10
+canPrint = False
+iterationCount = 0
 sonar1Data = 0
 sonar2Data = 0
 compassData = 0
@@ -62,6 +65,9 @@ def dispatchData() :
 	while True :
 		time.sleep(0.001)
 		
+		# No need to print every reading, some will do for debugging purpose
+		serialmod.canPrint = ((serialmod.iterationCount % serialmod.PRINT_EVERY_N_ITER) == 0)
+		
 		# Send compass data, set distance to zero if not available
 		if (serialmod.compassData != 0) :
 			# Acquire mutex lock on foot sensor data so that we don't miss any updates to it
@@ -79,7 +85,8 @@ def dispatchData() :
 			# Release the mutex lock after consuming footsend data
 			serialmod.footsensMutex.release()
 	
-			print "Foot/angle sensor ==> cruncher ", cruncherData
+			if (serialmod.canPrint) :
+				print "Foot/angle sensor ==> cruncher ", cruncherData
 			
 		# If both sonar data are available, combine them and send to alert
 		if ((serialmod.sonar1Data != 0) and (serialmod.sonar2Data != 0)) :
@@ -88,7 +95,10 @@ def dispatchData() :
 			
 			# Send to alert
 			serialmod.dc.send(DEST_PORT_ALERT, 'sonarData', combinedSonarData)
-			print "Sonar ==> alert ", combinedSonarData
+			
+			if (serialmod.canPrint) :
+				print "Sonar ==> alert ", combinedSonarData
+			
 			# Send to child process for posting to HTTP server
 			#serialmod.ns.data = { 'left' : combinedSonarData['1'], 'right' : combinedSonarData['2']  }
 		
@@ -96,6 +106,11 @@ def dispatchData() :
 			serialmod.sonar1Data = 0
 			serialmod.sonar2Data = 0
 
+			try:
+				# Count may overflow
+				serialmod.iterationCount += 1
+			except:
+				serialmod.iterationCount = 0
 
 # Run the easyNav dispatcher in a separate thread so it does not hog our serial read
 dispatcherThread = threading.Thread(target=serialmod.dispatchData)
