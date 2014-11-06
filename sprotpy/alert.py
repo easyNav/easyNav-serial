@@ -67,13 +67,13 @@ class Alert(object):
     
     def sendAlert(self, alertType):
         # Don't send successive stop commands - user may get angry!
-        ignoreAlert = (self.lastVoiceAlert == Alert.VOICE_ALERT_STOP) and (alertType == Alert.VOICE_ALERT_STOP)
+        #ignoreAlert = (self.lastVoiceAlert == Alert.VOICE_ALERT_STOP) and (alertType == Alert.VOICE_ALERT_STOP)
         
-        if (not ignoreAlert):
+        #if (not ignoreAlert):
             #self.lastVoiceAlert = alertType
-            print "Alert sent : ", alertType, "\n"
+		print "Alert sent : ", alertType, "\n"
             #self._dispatcherClient.send(Alert.PORT_VOICE_MODULE, 'say', {'text': alertType})
-            self._dispatcherClient.send(Alert.PORT_NAV_MODULE, 'obstacle', {'status': alertType})
+		self._dispatcherClient.send(Alert.PORT_NAV_MODULE, 'obstacle', {'status': alertType})
             
         
     # Check for obstacle position and returns OBSTACLE_X, where X is 
