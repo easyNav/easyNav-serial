@@ -144,7 +144,8 @@ class Alert(object):
 	        
 		strSonarRight = self.convertStr(payload['2'])
 		self.sonarRight = int(strSonarRight)
-	        
+	        print self.sonarLeft, self.sonarRight
+
 		self.sendAlert(self.checkForObstacle())
         	#if( not self.obstacleAvoidanceInProgress ):
         	#	if ( != Alert.OBSTACLE_NONE ):

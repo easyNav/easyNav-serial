@@ -63,7 +63,7 @@ p1 = multiprocessing.Process(target=sonar_post_process, args=(ns,))
 def dispatchData() :			
 			
 	while True :
-		time.sleep(0.001)
+		time.sleep(0.01)
 		
 		# No need to print every reading, some will do for debugging purpose
 		serialmod.canPrint = ((serialmod.iterationCount % serialmod.PRINT_EVERY_N_ITER) == 0)
@@ -134,25 +134,25 @@ while True :
 
 	# Check for error
 	try :
-    	if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
-        	print "recv error"
-    	else :
-		# Check packet type
-		#pkt.printPacket()
-		strpkt = pkt.data.decode("ascii")
+    		if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
+        		print "recv error"
+    		else :
+			# Check packet type
+			#pkt.printPacket()
+			strpkt = pkt.data.decode("ascii")
 
-		if (strpkt[0] == b'1') :
-			sonar1Data = convertPacketToSonarData(strpkt)
-		elif (strpkt[0] == b'2') :
-			sonar2Data = convertPacketToSonarData(strpkt)
-        	elif (strpkt[0] == b'C') :
-			compassData = strpkt[2:5]
-		elif (strpkt[0] == b'F') :
-			footsensMutex.acquire()
-			footsensData = removeNullChars(strpkt[2:10])
-			footsensMutex.release()
+			if (strpkt[0] == b'1') :
+				sonar1Data = convertPacketToSonarData(strpkt)
+			elif (strpkt[0] == b'2') :
+				sonar2Data = convertPacketToSonarData(strpkt)
+        		elif (strpkt[0] == b'C') :
+				compassData = strpkt[2:5]
+			elif (strpkt[0] == b'F') :
+				footsensMutex.acquire()
+				footsensData = removeNullChars(strpkt[2:10])
+				footsensMutex.release()
 	except:
-		sprotapi.Close()
+		sprotapi.SPROTClose()
 		sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=115200)
 
 
