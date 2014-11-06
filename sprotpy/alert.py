@@ -145,12 +145,13 @@ class Alert(object):
 		strSonarRight = self.convertStr(payload['2'])
 		self.sonarRight = int(strSonarRight)
 	        
-        	if( not self.obstacleAvoidanceInProgress ):
-        		if ( self.checkForObstacle() != Alert.OBSTACLE_NONE ):
-                		self.obstacleAvoidanceInProgress = True
-                		self.sendAlert(Alert.VOICE_ALERT_STOP)
-				sonarDataThread = threading.Thread(target=self.performObstacleAvoidance)
-	 			sonarDataThread.start()
+		self.sendAlert(self.checkForObstacle())
+        	#if( not self.obstacleAvoidanceInProgress ):
+        	#	if ( != Alert.OBSTACLE_NONE ):
+            #    		self.obstacleAvoidanceInProgress = True
+            #    		self.sendAlert(Alert.VOICE_ALERT_STOP)
+			#	sonarDataThread = threading.Thread(target=self.performObstacleAvoidance)
+	 		#	sonarDataThread.start()
  		               	                
                     
 def runMain():
