@@ -23,7 +23,7 @@ def SPROTClose():
 	serialPort.flushInput()
 	#serialPort.flushOutput()
 	serialPort.close()
-	sprotapi.initiazed = False
+	sprotapi.initialized = False
 	
 	
 def SPROTReceive(timeout=sprotcfg.SPROT_RECV_TIMEOUT):

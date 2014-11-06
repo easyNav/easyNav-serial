@@ -133,6 +133,7 @@ while True :
 	pkt = sprotapi.SPROTReceive()    
 
 	# Check for error
+	try :
     	if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
         	print "recv error"
     	else :
@@ -150,7 +151,9 @@ while True :
 			footsensMutex.acquire()
 			footsensData = removeNullChars(strpkt[2:10])
 			footsensMutex.release()
-
+	except:
+		sprotapi.Close()
+		sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=115200)
 
 
 # End of serialmod
