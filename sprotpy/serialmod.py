@@ -11,6 +11,7 @@ from easyNav_pi_dispatcher import DispatcherClient
 DATA_SIZE = 16
 DEST_PORT_CRUNCHER = 9003
 DEST_PORT_ALERT = 9004
+SERIALMOD_BAUDRATE = 115200
 
 
 # Posts sonar data to server
@@ -38,7 +39,7 @@ def convertPacketToSonarData(strpkt):
 
 
 
-sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=115200)
+sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=SERIALMOD_BAUDRATE)
 dc = DispatcherClient(port=9005)
 dc.start()
 
@@ -131,29 +132,28 @@ while True :
 
     # Read a packet
     pkt = sprotapi.SPROTReceive()    
-
-    # Check for error
+  
     try :
+            # Check for error
             if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
                 print "recv error"
             else :
-            # Check packet type
-            #pkt.printPacket()
-            strpkt = pkt.data.decode("ascii")
+                #pkt.printPacket()
+                strpkt = pkt.data.decode("ascii")
 
-            if (strpkt[0] == b'1') :
-                sonar1Data = convertPacketToSonarData(strpkt)
-            elif (strpkt[0] == b'2') :
-                sonar2Data = convertPacketToSonarData(strpkt)
+                if (strpkt[0] == b'1') :
+                    sonar1Data = convertPacketToSonarData(strpkt)
+                elif (strpkt[0] == b'2') :
+                    sonar2Data = convertPacketToSonarData(strpkt)
                 elif (strpkt[0] == b'C') :
-                compassData = strpkt[2:5]
-            elif (strpkt[0] == b'F') :
-                footsensMutex.acquire()
-                footsensData = removeNullChars(strpkt[2:10])
-                footsensMutex.release()
+                    compassData = strpkt[2:5]
+                elif (strpkt[0] == b'F') :
+                    footsensMutex.acquire()
+                    footsensData = removeNullChars(strpkt[2:10])
+                    footsensMutex.release()
     except:
         sprotapi.SPROTClose()
-        sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=115200)
+        sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=SERIALMOD_BAUDRATE)
 
 
 # End of serialmod
