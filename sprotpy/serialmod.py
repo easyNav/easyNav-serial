@@ -134,23 +134,23 @@ while True :
 
 	# Check for error
 	try :
-    	if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
-        	print "recv error"
-    	else :
-		# Check packet type
-		#pkt.printPacket()
-		strpkt = pkt.data.decode("ascii")
+    		if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
+        		print "recv error"
+    		else :
+			# Check packet type
+			#pkt.printPacket()
+			strpkt = pkt.data.decode("ascii")
 
-		if (strpkt[0] == b'1') :
-			sonar1Data = convertPacketToSonarData(strpkt)
-		elif (strpkt[0] == b'2') :
-			sonar2Data = convertPacketToSonarData(strpkt)
-        	elif (strpkt[0] == b'C') :
-			compassData = strpkt[2:5]
-		elif (strpkt[0] == b'F') :
-			footsensMutex.acquire()
-			footsensData = removeNullChars(strpkt[2:10])
-			footsensMutex.release()
+			if (strpkt[0] == b'1') :
+				sonar1Data = convertPacketToSonarData(strpkt)
+			elif (strpkt[0] == b'2') :
+				sonar2Data = convertPacketToSonarData(strpkt)
+        		elif (strpkt[0] == b'C') :
+				compassData = strpkt[2:5]
+			elif (strpkt[0] == b'F') :
+				footsensMutex.acquire()
+				footsensData = removeNullChars(strpkt[2:10])
+				footsensMutex.release()
 	except:
 		sprotapi.SPROTClose()
 		sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=115200)
