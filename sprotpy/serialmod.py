@@ -46,8 +46,9 @@ dc.start()
 PRINT_EVERY_N_ITER = 10
 canPrint = False
 iterationCount = 0
-sonar1Data = 0
-sonar2Data = 0
+sonar1Data = 0      # Left Sonar
+sonar2Data = 0      # Right Sonar
+sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
 footsensMutex = threading.Lock()
@@ -89,9 +90,10 @@ def dispatchData() :
             if (serialmod.canPrint) :
                 print "Foot/angle sensor ==> cruncher ", cruncherData
             
-        # If both sonar data are available, combine them and send to alert
-        if ((serialmod.sonar1Data != 0) and (serialmod.sonar2Data != 0)) :
+        # If all sonar data are available, combine them and send to alert
+        if ((serialmod.sonar1Data != 0) and (serialmod.sonar2Data != 0) and (serialmod.sonar3Data != 0)) :
             serialmod.sonar1Data.update(serialmod.sonar2Data)
+            serialmod.sonar1Data.update(serialmod.sonar3Data)
             combinedSonarData = serialmod.sonar1Data
             
             # Send to alert
@@ -106,6 +108,7 @@ def dispatchData() :
             # Clear sonar data after we have consumed them
             serialmod.sonar1Data = 0
             serialmod.sonar2Data = 0
+            serialmod.sonar3Data = 0
 
             try:
                 # Count may overflow
@@ -145,6 +148,8 @@ while True :
                     sonar1Data = convertPacketToSonarData(strpkt)
                 elif (strpkt[0] == b'2') :
                     sonar2Data = convertPacketToSonarData(strpkt)
+                elif (strpkt[0] == b'3') :
+                    sonar3Data = convertPacketToSonarData(strpkt)
                 elif (strpkt[0] == b'C') :
                     compassData = strpkt[2:5]
                 elif (strpkt[0] == b'F') :
